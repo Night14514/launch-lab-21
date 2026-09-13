@@ -1,6 +1,6 @@
 import { CheckCircle2, CircleDashed, Clock } from 'lucide-react';
 import type { OnePager } from '../types';
-import { formatDate } from './ui';
+import { formatDate, moduleStyle } from './ui';
 
 const WIDE_SECTIONS = new Set([1, 2, 9]);
 
@@ -44,8 +44,12 @@ export function OnePagerDocument({ onePager }: { onePager: OnePager }) {
       </header>
 
       <div className="paper__grid">
-        {sections.map((s) => (
-          <section key={s.moduleId} className={`paper-section ${WIDE_SECTIONS.has(s.order) ? 'paper-section--wide' : ''}`}>
+        {sections.map((s, i) => (
+          <section
+            key={s.moduleId}
+            className={`paper-section ${WIDE_SECTIONS.has(s.order) ? 'paper-section--wide' : ''}`}
+            style={moduleStyle(s.order, i)}
+          >
             <div className="paper-section__head">
               <span className="paper-section__num">{s.order}</span>
               <span className="paper-section__title">{s.title}</span>

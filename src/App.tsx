@@ -12,6 +12,7 @@ import { ActivityScreen } from './screens/ActivityScreen';
 import { CuratorDashboardScreen } from './screens/curator/CuratorDashboardScreen';
 import { CuratorProjectScreen } from './screens/curator/CuratorProjectScreen';
 import { TemplatesScreen } from './screens/curator/TemplatesScreen';
+import { AmbientBackground } from './components/AmbientBackground';
 
 /**
  * Маршруты. Секции /peer и /curator закрыты RequireRole; внутри экранов все данные идут через селекторы,
@@ -28,6 +29,7 @@ function ScrollToTop() {
 export default function App() {
   return (
     <HashRouter>
+      <AmbientBackground />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<RoleSelectScreen />} />

@@ -24,7 +24,18 @@ import {
   getModuleVisualState,
   sortTemplates,
 } from '../../services/modules';
-import { Initials, ModuleIcon, ProgressRing, StatusBadge, formatDate, relativeTime, visualStateLabel } from '../../components/ui';
+import {
+  Initials,
+  ModuleIcon,
+  ProgressRing,
+  StatusBadge,
+  formatDate,
+  moduleStyle,
+  relativeTime,
+  staggerStyle,
+  visualStateLabel,
+} from '../../components/ui';
+import type { CSSProperties } from 'react';
 
 export function PeerHomeScreen() {
   const { state } = useApp();
@@ -42,10 +53,10 @@ export function PeerHomeScreen() {
   const allDone = progress.completed === progress.total;
 
   const achievements = [
-    { id: 'first', label: 'Первый шаг', icon: <Flag size={14} />, unlocked: progress.completed >= 1, hint: 'Завершить 1 модуль' },
-    { id: 'half', label: 'Половина пути', icon: <Sparkles size={14} />, unlocked: progress.completed >= Math.ceil(progress.total / 2), hint: `Завершить ${Math.ceil(progress.total / 2)} модулей` },
-    { id: 'full', label: 'One-pager готов', icon: <Trophy size={14} />, unlocked: allDone && progress.total > 0, hint: 'Завершить все модули' },
-    { id: 'feedback', label: 'Есть фидбек куратора', icon: <MessageSquare size={14} />, unlocked: comments.length > 0, hint: 'Получить комментарий' },
+    { id: 'first', label: 'Первый шаг', icon: <Flag size={14} />, unlocked: progress.completed >= 1, hint: 'Завершить 1 модуль', color: 'var(--m3)' },
+    { id: 'half', label: 'Половина пути', icon: <Sparkles size={14} />, unlocked: progress.completed >= Math.ceil(progress.total / 2), hint: `Завершить ${Math.ceil(progress.total / 2)} модулей`, color: 'var(--m5)' },
+    { id: 'full', label: 'One-pager готов', icon: <Trophy size={14} />, unlocked: allDone && progress.total > 0, hint: 'Завершить все модули', color: 'var(--m2)' },
+    { id: 'feedback', label: 'Есть фидбек куратора', icon: <MessageSquare size={14} />, unlocked: comments.length > 0, hint: 'Получить комментарий', color: 'var(--m7)' },
   ];
 
   return (
@@ -59,7 +70,7 @@ export function PeerHomeScreen() {
           <div className="team-chips">
             {project.team.length === 0 && <span className="muted small">Состав команды не указан</span>}
             {project.team.map((m, i) => (
-              <span key={i} className="team-chip">
+              <span key={i} className="team-chip" style={{ '--ac': `var(--m${(i % 9) + 1})` } as CSSProperties}>
                 <span className="team-chip__avatar">
                   <Initials name={m.name} />
                 </span>
@@ -99,8 +110,18 @@ export function PeerHomeScreen() {
                 </>
               ) : (
                 <>
-                  Осталось: <strong>{progress.remaining.map((t) => t.title).join(', ')}</strong>
-                  {progress.inProgress > 0 && <> · из них в черновиках: {progress.inProgress}</>}
+                  <span>
+                    Осталось: {progress.remaining.length}
+                    {progress.inProgress > 0 && <> · черновиков: {progress.inProgress}</>}
+                  </span>
+                  <span className="sr-only">осталось: {progress.remaining.map((t) => t.title).join(', ')}</span>
+                  <div className="remain-chips">
+                    {progress.remaining.map((t, i) => (
+                      <span key={t.id} className="remain-chip" style={moduleStyle(t.order, i)}>
+                        {t.title}
+                      </span>
+                    ))}
+                  </div>
                 </>
               )}
             </div>
@@ -123,8 +144,8 @@ export function PeerHomeScreen() {
             )}
           </div>
 
-          <div className="module-list">
-            {templates.map((t) => {
+          <div className="module-list stagger">
+            {templates.map((t, i) => {
               const answer = findAnswer(answers, project.id, t.id);
               const status = getModuleStatus(t, answer);
               const visual = getModuleVisualState(t, status, current?.id ?? null);
@@ -134,6 +155,7 @@ export function PeerHomeScreen() {
                   key={t.id}
                   to={`/peer/module/${t.id}`}
                   className={`module-card module-card--${visual}`}
+                  style={moduleStyle(t.order, i)}
                   aria-label={`Модуль ${t.order}: ${t.title} — ${visualStateLabel(visual)}`}
                   data-state={visual}
                 >
@@ -165,7 +187,7 @@ export function PeerHomeScreen() {
         </section>
 
         <aside className="stack">
-          <div className="card">
+          <div className="card card--hover rise rise--1">
             <div className="card__title">
               <FileText size={18} /> One-pager проекта
             </div>
@@ -182,20 +204,25 @@ export function PeerHomeScreen() {
             </div>
           </div>
 
-          <div className="card">
+          <div className="card card--hover rise rise--2">
             <div className="card__title">
               <Award size={18} /> Достижения
             </div>
             <div className="achievements">
               {achievements.map((a) => (
-                <span key={a.id} className={`achievement ${a.unlocked ? 'achievement--unlocked' : ''}`} title={a.hint}>
+                <span
+                  key={a.id}
+                  className={`achievement ${a.unlocked ? 'achievement--unlocked' : ''}`}
+                  style={{ '--ac': a.color } as CSSProperties}
+                  title={a.hint}
+                >
                   {a.icon} {a.label}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="card">
+          <div className="card card--hover rise rise--3">
             <div className="card__title">
               <Rocket size={18} /> Последняя активность
             </div>
@@ -203,9 +230,9 @@ export function PeerHomeScreen() {
               <p className="muted small">Пока пусто — сохраните первый ответ.</p>
             ) : (
               <div className="activity">
-                {activity.map((e) => (
-                  <div key={e.id} className="activity__item">
-                    <span className="activity__icon">
+                {activity.map((e, i) => (
+                  <div key={e.id} className="activity__item" style={staggerStyle(i)}>
+                    <span className={`activity__icon activity__icon--${e.type}`}>
                       <ActivityIcon type={e.type} />
                     </span>
                     <div>

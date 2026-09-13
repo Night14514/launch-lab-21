@@ -24,7 +24,8 @@ import {
 } from '../../services/modules';
 import { assembleOnePager } from '../../services/onePager';
 import { useToast } from '../../components/Toast';
-import { ModuleIcon, StatusBadge, formatDate, relativeTime } from '../../components/ui';
+import { ConfettiBurst, ModuleIcon, StatusBadge, formatDate, moduleColor, moduleStyle, relativeTime } from '../../components/ui';
+import type { CSSProperties } from 'react';
 import { NotFound } from '../../components/guards';
 import type { ModuleAnswer, ModuleTemplate, Project } from '../../types';
 
@@ -76,6 +77,8 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
   const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [saving, setSaving] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [burst, setBurst] = useState(0); // ключ залпа конфетти
+  const [flash, setFlash] = useState(false);
 
   // Сравниваем нормализованные значения: сервис сохраняет trim(), локально пробелы остаются
   const normalize = (v: Record<string, string>) => JSON.stringify(template.fields.map((f) => (v[f.key] ?? '').trim()));
@@ -109,8 +112,11 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
     setSaving(true);
     try {
       dispatch({ type: 'SAVE_ANSWER', projectId: project.id, moduleTemplateId: template.id, values });
+      setFlash(true);
+      window.setTimeout(() => setFlash(false), 1200);
       if (validation.status === 'completed') {
         toast.success('Сохранено ✓', `Модуль «${template.title}» завершён — раздел обновлён в one-pager.`);
+        if (savedStatus !== 'completed') setBurst((b) => b + 1); // конфетти только при первом завершении
       } else {
         toast.success(
           'Сохранено как черновик ✓',
@@ -124,14 +130,21 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
   };
 
   return (
-    <main className="page">
+    <main className="page" style={moduleStyle(template.order)}>
+      {burst > 0 && <ConfettiBurst key={burst} seed={burst} originX={50} originY={88} />}
       <div className="page-head">
         <div>
-          <div className="eyebrow">
+          <div className="eyebrow" style={{ color: moduleColor(template.order) }}>
             Модуль {template.order} из {templates.length} · {project.name}
           </div>
           <h1 className="row" style={{ gap: 12 }}>
-            <ModuleIcon name={template.icon} size={26} />
+            <span
+              className="module-card__num"
+              style={{ width: 40, height: 40, borderRadius: 12, fontSize: 18 } as CSSProperties}
+              aria-hidden
+            >
+              <ModuleIcon name={template.icon} size={20} />
+            </span>
             {template.title}
             <StatusBadge status={savedStatus} current={current?.id === template.id} />
           </h1>
@@ -147,6 +160,7 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
                   key={t.id}
                   to={`/peer/module/${t.id}`}
                   className={`dot dot--${vis} ${t.id === template.id ? 'dot--active' : ''}`}
+                  style={moduleStyle(t.order)}
                   title={`${t.order}. ${t.title}`}
                 />
               );
@@ -160,15 +174,15 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
 
       <div className="grid grid--sidebar">
         <section>
-          <div className="guidance mb-2">
+          <div className="guidance mb-2 rise">
             <div className="row" style={{ gap: 8, marginBottom: 6 }}>
-              <Lightbulb size={16} style={{ color: 'var(--accent)' }} />
-              <strong>Как ответить хорошо</strong>
+              <Lightbulb size={16} style={{ color: moduleColor(template.order) }} />
+              <strong style={{ color: moduleColor(template.order) }}>Как ответить хорошо</strong>
             </div>
             {template.guidance}
           </div>
 
-          <div className="card">
+          <div className="card rise rise--1">
             {template.fields.map((f) => {
               const value = values[f.key] ?? '';
               const missing = attempted && f.required && !value.trim();
@@ -214,7 +228,7 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
             })}
           </div>
 
-          <div className="save-bar">
+          <div className={`save-bar ${flash ? 'save-bar--flash' : ''}`}>
             <div
               className={`save-bar__status ${dirty ? 'save-bar__status--dirty' : answer ? 'save-bar__status--saved' : ''}`}
               aria-live="polite"
@@ -269,7 +283,7 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
         </section>
 
         <aside className="stack">
-          <div className="card">
+          <div className="card card--hover rise rise--2">
             <div className="card__title">
               <FileText size={18} /> Как это выглядит в one-pager
             </div>
@@ -303,9 +317,9 @@ function ModuleForm({ project, template, templates, answers, answer }: FormProps
             </Link>
           </div>
 
-          <div className="card">
+          <div className="card card--hover rise rise--3">
             <div className="card__title">
-              <MessageSquare size={18} /> Комментарии куратора
+              <MessageSquare size={18} style={{ color: '#f59e0b' }} /> Комментарии куратора
             </div>
             {comments.length === 0 ? (
               <p className="muted small">Куратор ещё не комментировал этот модуль.</p>

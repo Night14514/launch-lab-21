@@ -5,8 +5,9 @@ import { useApp } from '../../state/AppContext';
 import { selectAnswers, selectCan, selectComments, selectProject } from '../../services/selectors';
 import { computeOverallProgress, findAnswer, getCurrentModule, getModuleStatus, getModuleVisualState, sortTemplates, splitList } from '../../services/modules';
 import { useToast } from '../../components/Toast';
-import { Initials, ModuleIcon, ProgressRing, StatusBadge, formatDate, relativeTime } from '../../components/ui';
+import { Initials, ModuleIcon, ProgressRing, StatusBadge, formatDate, moduleStyle, relativeTime } from '../../components/ui';
 import { NotFound } from '../../components/guards';
+import type { CSSProperties } from 'react';
 import type { ModuleTemplate, Project } from '../../types';
 
 export function CuratorProjectScreen() {
@@ -42,7 +43,7 @@ export function CuratorProjectScreen() {
           {project.description && <p className="project-hero__desc">{project.description}</p>}
           <div className="team-chips">
             {project.team.map((m, i) => (
-              <span key={i} className="team-chip">
+              <span key={i} className="team-chip" style={{ '--ac': `var(--m${(i % 9) + 1})` } as CSSProperties}>
                 <span className="team-chip__avatar">
                   <Initials name={m.name} />
                 </span>
@@ -96,8 +97,15 @@ export function CuratorProjectScreen() {
         Ответы по модулям
       </h2>
       <div className="accordion">
-        {templates.map((t) => (
-          <ModuleAccordionItem key={t.id} project={project} template={t} currentId={current?.id ?? null} defaultOpen={t.id === current?.id} />
+        {templates.map((t, i) => (
+          <ModuleAccordionItem
+            key={t.id}
+            index={i}
+            project={project}
+            template={t}
+            currentId={current?.id ?? null}
+            defaultOpen={t.id === current?.id}
+          />
         ))}
       </div>
     </main>
@@ -105,11 +113,13 @@ export function CuratorProjectScreen() {
 }
 
 function ModuleAccordionItem({
+  index,
   project,
   template,
   currentId,
   defaultOpen,
 }: {
+  index: number;
   project: Project;
   template: ModuleTemplate;
   currentId: string | null;
@@ -145,9 +155,9 @@ function ModuleAccordionItem({
   };
 
   return (
-    <div className="accordion__item">
+    <div className="accordion__item" style={moduleStyle(template.order, index)}>
       <button className="accordion__head" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <span className={`module-card__num ${visual === 'completed' ? '' : ''}`} style={{ width: 36, height: 36, borderRadius: 10 }}>
+        <span className="module-card__num" style={{ width: 36, height: 36, borderRadius: 10 }}>
           {visual === 'completed' ? <CheckCircle2 size={18} style={{ color: 'var(--success)' }} /> : template.order}
         </span>
         <span>

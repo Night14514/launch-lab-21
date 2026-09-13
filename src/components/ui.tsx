@@ -16,9 +16,18 @@ import {
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useId, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { AnswerStatus } from '../types';
 import type { ModuleVisualState } from '../services/modules';
+
+/** Цвет модуля по порядковому номеру (палитра --m1…--m9 в index.css, циклично). */
+export const moduleColor = (order: number): string => `var(--m${((order - 1) % 9) + 1})`;
+
+/** Инлайн-переменные для карточек/секций: цвет модуля и индекс для каскадной анимации. */
+export const moduleStyle = (order: number, index?: number): CSSProperties =>
+  ({ '--mc': moduleColor(order), ...(index !== undefined ? { '--i': index } : {}) }) as CSSProperties;
+
+export const staggerStyle = (index: number): CSSProperties => ({ '--i': index }) as CSSProperties;
 
 const ICONS: Record<string, LucideIcon> = {
   AlertCircle,
@@ -95,13 +104,35 @@ interface RingProps {
 }
 
 export function ProgressRing({ value, size = 88, stroke = 8, label, success }: RingProps) {
+  const gradId = useId();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const clamped = Math.max(0, Math.min(100, value));
   const offset = c - (clamped / 100) * c;
   return (
-    <div className={`ring ${success ? 'ring--success' : ''}`} style={{ width: size, height: size }} role="img" aria-label={`Прогресс ${clamped}%`}>
+    <div
+      className={`ring ${success ? 'ring--success' : ''}`}
+      style={{ width: size, height: size, '--ring-c': c } as CSSProperties}
+      role="img"
+      aria-label={`Прогресс ${clamped}%`}
+    >
+      {size >= 80 && <span className="ring__glow" />}
       <svg width={size} height={size}>
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+            {success ? (
+              <>
+                <stop offset="0%" stopColor="var(--success)" />
+                <stop offset="100%" stopColor="var(--m8)" />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor="var(--accent)" />
+                <stop offset="100%" stopColor="var(--m5)" />
+              </>
+            )}
+          </linearGradient>
+        </defs>
         <circle className="ring__track" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none" />
         <circle
           className="ring__bar"
@@ -110,6 +141,7 @@ export function ProgressRing({ value, size = 88, stroke = 8, label, success }: R
           r={r}
           strokeWidth={stroke}
           fill="none"
+          stroke={`url(#${gradId})`}
           strokeDasharray={c}
           strokeDashoffset={offset}
         />
@@ -176,6 +208,58 @@ export function relativeTime(iso: string): string {
   const d = Math.round(h / 24);
   if (d < 30) return `${d} дн назад`;
   return formatDate(iso);
+}
+
+const CONFETTI_COLORS = ['var(--m1)', 'var(--m2)', 'var(--m3)', 'var(--m4)', 'var(--m5)', 'var(--m6)', 'var(--m7)', 'var(--m8)', 'var(--m9)'];
+
+/**
+ * Залп конфетти из точки (в % от окна). Монтируется по ключу — каждый новый key = новый залп.
+ * Чисто декоративный, pointer-events: none, сам исчезает после анимации.
+ */
+/** Детерминированный псевдослучайный [0,1) от индекса и соли — рендер остаётся чистым. */
+const prand = (i: number, salt: number): number => {
+  const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+export function ConfettiBurst({
+  originX = 50,
+  originY = 85,
+  count = 28,
+  seed = 1,
+}: {
+  originX?: number;
+  originY?: number;
+  count?: number;
+  seed?: number;
+}) {
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => {
+        const angle = Math.PI * (0.15 + prand(i, seed) * 0.7) * -1; // вверх, в веер
+        const dist = 120 + prand(i, seed + 1) * 220;
+        return {
+          id: i,
+          c: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+          dx: `${Math.cos(angle) * dist}px`,
+          dy: `${Math.sin(angle) * dist + 160}px`,
+          r: `${(prand(i, seed + 2) - 0.5) * 720}deg`,
+          d: `${prand(i, seed + 3) * 120}ms`,
+        };
+      }),
+    [count, seed],
+  );
+  return (
+    <div className="confetti" aria-hidden>
+      {pieces.map((p) => (
+        <span
+          key={p.id}
+          className="confetti__piece"
+          style={{ '--x': `${originX}%`, '--y': `${originY}%`, '--c': p.c, '--dx': p.dx, '--dy': p.dy, '--r': p.r, '--d': p.d } as CSSProperties}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function pluralModules(n: number): string {

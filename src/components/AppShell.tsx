@@ -42,7 +42,7 @@ export function AppShell() {
     <div className="app-shell" data-role={actor?.role ?? 'peer'}>
       <header className="topbar">
         <NavLink to={isCurator ? '/curator' : '/peer'} className="topbar__brand">
-          <span className="topbar__logo">
+          <span className="topbar__logo topbar__logo--live">
             <Rocket size={18} />
           </span>
           <span>

@@ -5,7 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { selectCan } from '../../services/selectors';
 import { sortTemplates } from '../../services/modules';
 import { useToast } from '../../components/Toast';
-import { ModuleIcon } from '../../components/ui';
+import { ModuleIcon, moduleStyle } from '../../components/ui';
 import type { FieldType, ModuleTemplate, TemplateField } from '../../types';
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
@@ -37,18 +37,17 @@ export function TemplatesScreen() {
 
       <div className="grid grid--sidebar" style={{ gridTemplateColumns: '300px minmax(0,1fr)' }}>
         <aside className="stack">
-          <div className="card" style={{ padding: 8 }}>
-            {templates.map((t) => (
+          <div className="card stagger" style={{ padding: 8 }}>
+            {templates.map((t, i) => (
               <Link
                 key={t.id}
                 to={`/curator/templates/${t.id}`}
-                className="module-card"
+                className={`module-card template-nav-item ${t.id === moduleId ? 'active' : ''}`}
                 style={{
+                  ...moduleStyle(t.order, i),
                   gridTemplateColumns: '32px 1fr auto',
                   padding: '10px 12px',
                   marginBottom: 4,
-                  borderColor: t.id === moduleId ? 'rgba(var(--accent-rgb),0.7)' : undefined,
-                  background: t.id === moduleId ? 'rgba(var(--accent-rgb),0.12)' : undefined,
                 }}
               >
                 <span className="module-card__num" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 13 }}>

@@ -2,7 +2,7 @@ import { Activity } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 import { selectActivity, selectMyProject } from '../services/selectors';
 import { ActivityIcon } from './peer/PeerHomeScreen';
-import { EmptyState, formatDate, relativeTime } from '../components/ui';
+import { EmptyState, formatDate, relativeTime, staggerStyle } from '../components/ui';
 
 /** Лента активности: пир видит только свой проект, куратор — все проекты и системные события. */
 export function ActivityScreen({ scope }: { scope: 'peer' | 'curator' }) {
@@ -31,9 +31,9 @@ export function ActivityScreen({ scope }: { scope: 'peer' | 'curator' }) {
           </EmptyState>
         ) : (
           <div className="activity">
-            {events.map((e) => (
-              <div key={e.id} className="activity__item">
-                <span className="activity__icon">
+            {events.map((e, i) => (
+              <div key={e.id} className="activity__item" style={staggerStyle(Math.min(i, 12))}>
+                <span className={`activity__icon activity__icon--${e.type}`}>
                   <ActivityIcon type={e.type} />
                 </span>
                 <div>

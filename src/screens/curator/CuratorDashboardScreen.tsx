@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, CheckCircle2, FolderKanban, MessageSqu
 import { useApp } from '../../state/AppContext';
 import { selectAnswers, selectComments, selectVisibleProjects } from '../../services/selectors';
 import { computeOverallProgress, getCurrentModule } from '../../services/modules';
-import { EmptyState, ProgressBar, ProgressRing, relativeTime } from '../../components/ui';
+import { EmptyState, ProgressBar, ProgressRing, moduleStyle, relativeTime, staggerStyle } from '../../components/ui';
 
 type SortKey = 'progress' | 'name' | 'updated';
 
@@ -67,30 +67,38 @@ export function CuratorDashboardScreen() {
         </div>
       </div>
 
-      <div className="grid grid--3 mb-2" style={{ gridTemplateColumns: 'repeat(4, minmax(0,1fr))' }}>
-        <div className="card stat">
-          <Users className="stat__icon" size={20} />
+      <div className="grid grid--3 mb-2 stagger" style={{ gridTemplateColumns: 'repeat(4, minmax(0,1fr))' }}>
+        <div className="card card--hover stat stat--1" style={staggerStyle(0)}>
+          <span className="stat__icon">
+            <Users size={18} />
+          </span>
           <div className="stat__value">{total}</div>
           <div className="stat__label">команд в программе</div>
         </div>
-        <div className="card stat">
-          <Sparkles className="stat__icon" size={20} />
+        <div className="card card--hover stat stat--2" style={staggerStyle(1)}>
+          <span className="stat__icon">
+            <Sparkles size={18} />
+          </span>
           <div className="stat__value">{avg}%</div>
           <div className="stat__label">средний прогресс</div>
         </div>
-        <div className="card stat">
-          <CheckCircle2 className="stat__icon" size={20} />
+        <div className="card card--hover stat stat--3" style={staggerStyle(2)}>
+          <span className="stat__icon">
+            <CheckCircle2 size={18} />
+          </span>
           <div className="stat__value">{finished}</div>
           <div className="stat__label">one-pager собран полностью</div>
         </div>
-        <div className="card stat">
-          <MessageSquare className="stat__icon" size={20} />
+        <div className="card card--hover stat stat--4" style={staggerStyle(3)}>
+          <span className="stat__icon">
+            <MessageSquare size={18} />
+          </span>
           <div className="stat__value">{totalComments}</div>
           <div className="stat__label">комментариев оставлено</div>
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card rise rise--2" style={{ padding: 0, overflow: 'hidden' }}>
         {sorted.length === 0 ? (
           <EmptyState icon={<FolderKanban size={36} />} title="Проектов пока нет">
             Команды появятся здесь после создания проекта.
@@ -145,7 +153,15 @@ export function CuratorDashboardScreen() {
                     </td>
                     <td>
                       {current ? (
-                        <span className="badge badge--current">
+                        <span
+                          className="badge"
+                          style={{
+                            ...moduleStyle(current.order),
+                            color: 'var(--mc)',
+                            background: 'color-mix(in srgb, var(--mc) 14%, transparent)',
+                            borderColor: 'color-mix(in srgb, var(--mc) 45%, transparent)',
+                          }}
+                        >
                           {current.order}. {current.title}
                         </span>
                       ) : (

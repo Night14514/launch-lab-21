@@ -4,6 +4,7 @@ import { DEMO_ACTORS } from '../data/mockData';
 import { useApp } from '../state/AppContext';
 import { computeOverallProgress } from '../services/modules';
 import { Initials } from '../components/ui';
+import { onSpotlightMove } from '../components/AmbientBackground';
 import type { Actor } from '../types';
 
 export function RoleSelectScreen() {
@@ -36,19 +37,25 @@ export function RoleSelectScreen() {
       <div className="role-select__inner">
         <div className="role-select__hero">
           <div className="row" style={{ justifyContent: 'center', marginBottom: 14 }}>
-            <span className="topbar__logo" style={{ width: 44, height: 44 }}>
-              <Rocket size={22} />
-            </span>
+            <div className="logo-orbit">
+              <span className="logo-orbit__ring" />
+              <span className="logo-orbit__dot" />
+              <span className="topbar__logo" style={{ width: 52, height: 52 }}>
+                <Rocket size={24} />
+              </span>
+            </div>
           </div>
           <h1>Launch Lab 21</h1>
-          <p className="tagline">Пройди модули — one-pager соберётся сам</p>
+          <p className="tagline">
+            Пройди модули — <em>one-pager соберётся сам</em>
+          </p>
           <p className="muted small mt-1">
             Прототип без авторизации: выберите, от чьего имени смотреть платформу. Роль сохраняется при перезагрузке.
           </p>
         </div>
 
         <div className="role-cards">
-          <section className="role-card role-card--peer">
+          <section className="role-card role-card--peer" onMouseMove={onSpotlightMove}>
             <div className="role-card__icon">
               <UserRound size={22} />
             </div>
@@ -81,7 +88,7 @@ export function RoleSelectScreen() {
             </div>
           </section>
 
-          <section className="role-card role-card--curator">
+          <section className="role-card role-card--curator" onMouseMove={onSpotlightMove}>
             <div className="role-card__icon">
               <ShieldCheck size={22} />
             </div>
